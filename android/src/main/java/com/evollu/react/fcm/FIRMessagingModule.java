@@ -297,6 +297,7 @@ public class FIRMessagingModule extends ReactContextBaseJavaModule implements Li
 
     @Override
     public void onNewIntent(Intent intent){
-        sendEvent("FCMNotificationReceived", parseIntent(intent));
+      //  Circular reference...
+      //  sendEvent("FCMNotificationReceived", parseIntent(intent));
     }
 }
