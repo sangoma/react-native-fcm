@@ -79,7 +79,7 @@ public class MessagingService extends FirebaseMessagingService {
     private void launchApplication(Context context, String codeID) {
         String packageName = context.getApplicationContext().getPackageName();
         Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(packageName);
-
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         launchIntent.putExtra("codeID", codeID);
         context.startActivity(launchIntent);
