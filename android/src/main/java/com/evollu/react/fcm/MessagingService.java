@@ -80,7 +80,7 @@ public class MessagingService extends FirebaseMessagingService {
         String packageName = context.getApplicationContext().getPackageName();
         Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(packageName);
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        launchIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        //launchIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         launchIntent.putExtra("codeID", codeID);
         context.startActivity(launchIntent);
         Log.i(TAG, "Start activity with extra: Launching: (" + packageName + ")  : " + codeID );
