@@ -32,9 +32,24 @@ public class MessagingService extends FirebaseMessagingService {
         i.putExtra("data", remoteMessage);
 
         handleBadge(remoteMessage);
-        buildLocalNotification(remoteMessage);
+        //buildLocalNotification(remoteMessage);
 
         final Intent message = i;
+        boolean validMessage = false;
+        boolean incallMSG = false;
+
+        if (remoteMessage.getData().containsKey("pbxaction")){
+            validMessage = true;
+            incallMSG = (remoteMessage.getData().get("pbxaction").toUpperCase().trim().equals("INCALL"));
+        }
+
+        final boolean isValidMessage = validMessage;
+        final boolean isIncallMsg = incallMSG;
+        final RemoteMessage originalRemoteMessage = remoteMessage;
+
+        Log.d(TAG,"isVisValidMessage" + isValidMessage);
+        Log.d(TAG,"isIncallMsg" + isIncallMsg);
+        Log.d(TAG,"RemoteMessage" + originalRemoteMessage);
 
         // We need to run this on the main thread, as the React code assumes that is true.
         // Namely, DevServerHelper constructs a Handler() without a Looper, which triggers:
@@ -55,17 +70,23 @@ public class MessagingService extends FirebaseMessagingService {
                     // Otherwise wait for construction, then send the notification
                     // LOAD REACT INSTANCE
 
-                    mReactInstanceManager.addReactInstanceEventListener(new ReactInstanceManager.ReactInstanceEventListener() {
-                        public void onReactContextInitialized(ReactContext context) {
-                            //App was killed by Android or User, needs to startActivity
-                            launchApplication(context,"INCALL");
-                            context.sendOrderedBroadcast(message, null);
+                    if (isValidMessage) {
+                            if (isIncallMsg) {
+                                mReactInstanceManager.addReactInstanceEventListener(new ReactInstanceManager.ReactInstanceEventListener() {
+                                    public void onReactContextInitialized(ReactContext context) {
+                                        //App was killed by Android or User, needs to startActivity
+                                        launchApplication(context,"INCALL");
+                                        context.sendOrderedBroadcast(message, null);
 
-                        }
-                    });
-                    if (!mReactInstanceManager.hasStartedCreatingInitialContext()) {
-                        // Construct it in the background
-                        mReactInstanceManager.createReactContextInBackground();
+                                    }
+                                });
+                                if (!mReactInstanceManager.hasStartedCreatingInitialContext()) {
+                                    // Construct it in the background
+                                    mReactInstanceManager.createReactContextInBackground();
+                                }
+                            } else {
+                                buildLocalNotification(originalRemoteMessage);
+                            }
                     }
                 }
             }
@@ -109,10 +130,10 @@ public class MessagingService extends FirebaseMessagingService {
             return;
         }
         Map<String, String> data = remoteMessage.getData();
-        String customNotification = data.get("custom_notification");
+        String customNotification = data.get("title");
         if(customNotification != null){
             try {
-                Bundle bundle = BundleJSONConverter.convertToBundle(new JSONObject(customNotification));
+                Bundle bundle = BundleJSONConverter.convertToBundle(new JSONObject(remoteMessage.getData()));
                 FIRLocalMessagingHelper helper = new FIRLocalMessagingHelper(this.getApplication());
                 helper.sendNotification(bundle);
             } catch (JSONException e) {
